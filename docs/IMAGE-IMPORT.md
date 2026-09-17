@@ -31,7 +31,11 @@ Inventario actual aproximado del repo local (sep 2026):
 | Conjuntos | 33 | ~8 MB |
 | **Total** | **966 JPG** | **~269 MB** |
 
-Tras WebP ~1200px / q82 se espera quedar cómodamente bajo 1 GB Storage Free, pero conviene correr:
+Medición real (`npm run optimize:images`, sep 2026):
+
+- Entrada: **269.0 MB**
+- Salida estimada WebP 1200px q82: **95.0 MB** (−64.7%)
+- Cabe en Supabase Free Storage (~1 GB) con margen
 
 ```bash
 npm run optimize:images
