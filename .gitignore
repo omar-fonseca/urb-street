@@ -1,0 +1,34 @@
+# Dependencies
+node_modules/
+
+# Build
+dist/
+dist-ssr/
+*.local
+
+# Environment / secrets
+.env
+.env.*
+!.env.example
+
+# Editor / OS
+.DS_Store
+Thumbs.db
+*.swp
+.vscode/*
+!.vscode/extensions.json
+.idea/
+
+# Logs
+*.log
+npm-debug.log*
+
+# Local image source (import pipeline only — not production bundle)
+images/
+
+# Scripts temp / reports
+scripts/**/report-*.json
+scripts/**/.cache/
+
+# Test / coverage
+coverage/
