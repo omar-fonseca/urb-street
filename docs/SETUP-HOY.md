@@ -1,39 +1,39 @@
 # Setup rápido (hoy)
 
-## 1. `.env` (ya casi listo)
+## Si el catálogo da error de permisos / tabla faltante
+
+Ejecuta **`supabase/REPAIR.sql`** en el SQL Editor (idempotente).  
+Corrige: grants `anon`, columnas `orden`, tabla `producto_imagenes`, bucket `product-images`, seed y Realtime.
+
+## 1. `.env`
 
 ```env
 VITE_SUPABASE_URL=https://TU-PROYECTO.supabase.co
 VITE_SUPABASE_PUBLISHABLE_KEY=sb_publishable_...
 ```
 
-- URL = solo el host del proyecto (**sin** `/rest/v1`)
-- Key = `anon` / **publishable** (nunca `service_role` aquí)
+- URL = solo el host (**sin** `/rest/v1`)
+- Key = publishable/anon (nunca `service_role` con prefijo `VITE_`)
 
-## 2. Crear base (obligatorio una vez)
+Para importar fotos (solo local, script Node):
 
-1. Abre Supabase → **SQL Editor**
-2. Copia todo el archivo `supabase/SETUP.sql`
-3. Run
+```env
+SUPABASE_URL=https://TU-PROYECTO.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=...   # secret — NO la subas a Git ni a Cloudflare
+```
 
-Eso crea: tablas, RLS, bucket `product-images`, 7 categorías y Realtime.
-
-## 3. Usuario admin
-
-Authentication → Users → el correo/contraseña con el que entrarás al modo admin.
-
-## 4. Arrancar
+## 2. Arrancar
 
 ```powershell
 npm run dev
 ```
 
-- **Comprador:** catálogo + WhatsApp (sin login)
-- **Admin:** menú `⋮` → Administrador → login  
-  Luego: `+ Imagen` / Eliminar imagen  
-  El comprador (otra pestaña) se actualiza solo vía Realtime.
+- Comprador: catálogo + WhatsApp
+- Admin: `⋮` → Administrador → login → `+ Imagen` / Eliminar
+- Realtime: otra pestaña comprador se actualiza sola
 
-## 5. Después (no bloquea hoy)
+## 3. Import masivo
 
-- Import masivo: `npm run import:images` (usa `service_role` solo en terminal local)
-- Cloudflare Pages + dominio cuando el catálogo ya funcione
+```powershell
+npm run import:images
+```
