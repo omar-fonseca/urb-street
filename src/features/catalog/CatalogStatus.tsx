@@ -4,6 +4,42 @@ interface CatalogStatusProps {
   onRetry: () => void;
 }
 
+function explainError(error: string | null): {
+  headline: string;
+  body: string;
+  adminHint?: string;
+} {
+  const raw = (error ?? "").toLowerCase();
+
+  if (
+    raw.includes("orden does not exist") ||
+    raw.includes("permission denied") ||
+    raw.includes("producto_imagenes") ||
+    raw.includes("could not find the table") ||
+    raw.includes("pgrst")
+  ) {
+    return {
+      headline: "Catálogo en configuración",
+      body: "La base de datos aún no está alineada con la app. El resto del sitio (marca y WhatsApp) sigue disponible.",
+      adminHint:
+        "Admin: en Supabase SQL Editor ejecuta supabase/REPAIR.sql y luego pulsa Reintentar.",
+    };
+  }
+
+  if (raw.includes("supabase no está configurado") || raw.includes("faltan")) {
+    return {
+      headline: "Catálogo no configurado",
+      body: "Faltan las variables de entorno de Supabase en este entorno.",
+      adminHint: "Admin: revisa el archivo .env (URL sin /rest/v1 + publishable key).",
+    };
+  }
+
+  return {
+    headline: "Catálogo temporalmente no disponible",
+    body: error ?? "No pudimos conectar con el servidor. Intenta de nuevo.",
+  };
+}
+
 export function CatalogStatus({ status, error, onRetry }: CatalogStatusProps) {
   if (status === "loading" || status === "idle") {
     return (
@@ -17,14 +53,18 @@ export function CatalogStatus({ status, error, onRetry }: CatalogStatusProps) {
   }
 
   if (status === "error") {
+    const msg = explainError(error);
     return (
       <div className="py-24 px-4 flex flex-col items-center gap-4 text-center max-w-lg mx-auto">
         <p className="font-condensed font-black text-xl uppercase tracking-widest text-[#F5F5F5]">
-          Catálogo temporalmente no disponible
+          {msg.headline}
         </p>
-        <p className="font-condensed text-[#888] text-sm">
-          {error ?? "No pudimos conectar con el servidor. Intenta de nuevo."}
-        </p>
+        <p className="font-condensed text-[#888] text-sm leading-relaxed">{msg.body}</p>
+        {msg.adminHint && (
+          <p className="font-condensed text-[#555] text-xs leading-relaxed border border-[#2A2A2A] px-4 py-3">
+            {msg.adminHint}
+          </p>
+        )}
         <button
           type="button"
           onClick={onRetry}

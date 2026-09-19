@@ -24,7 +24,7 @@ npm install
 npm run dev
 ```
 
-**Primera vez con Supabase:** ejecuta `supabase/SETUP.sql` en el SQL Editor (tablas + RLS + categorías + Realtime). Guía corta: [docs/SETUP-HOY.md](docs/SETUP-HOY.md).
+**Primera vez con Supabase:** ejecuta `supabase/SETUP.sql` o, si el catálogo falla por permisos/columnas, **`supabase/REPAIR.sql`**. Guía: [docs/SETUP-HOY.md](docs/SETUP-HOY.md). Estado del día: [docs/STATUS-HOY.md](docs/STATUS-HOY.md).
 
 Build:
 
