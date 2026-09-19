@@ -20,10 +20,11 @@ Catálogo web streetwear + WhatsApp + administración simple de fotografías.
 
 ```bash
 npm install
-cp .env.example .env
-# completa VITE_SUPABASE_URL y VITE_SUPABASE_PUBLISHABLE_KEY
+# Completa .env (ver docs/SETUP-HOY.md)
 npm run dev
 ```
+
+**Primera vez con Supabase:** ejecuta `supabase/SETUP.sql` en el SQL Editor (tablas + RLS + categorías + Realtime). Guía corta: [docs/SETUP-HOY.md](docs/SETUP-HOY.md).
 
 Build:
 

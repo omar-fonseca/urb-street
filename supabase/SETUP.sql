@@ -1,5 +1,7 @@
--- URB Street V1 — schema + RLS + storage policies
--- Run in Supabase SQL editor or via supabase db push
+-- URB Street V1 — ejecutar TODO este archivo una sola vez en:
+-- Supabase Dashboard → SQL Editor → New query → Run
+--
+-- Crea tablas, RLS, storage, categorías y Realtime (admin → comprador).
 
 create extension if not exists "pgcrypto";
 
@@ -37,7 +39,6 @@ create index if not exists productos_categoria_id_idx on public.productos(catego
 create index if not exists productos_visible_orden_idx on public.productos(visible, orden);
 create index if not exists producto_imagenes_producto_id_idx on public.producto_imagenes(producto_id);
 
--- updated_at trigger
 create or replace function public.set_updated_at()
 returns trigger
 language plpgsql
@@ -59,7 +60,6 @@ alter table public.categorias enable row level security;
 alter table public.productos enable row level security;
 alter table public.producto_imagenes enable row level security;
 
--- Public read
 drop policy if exists "categorias_public_read" on public.categorias;
 create policy "categorias_public_read"
   on public.categorias for select
@@ -83,7 +83,6 @@ create policy "producto_imagenes_public_read"
     )
   );
 
--- Authenticated admin: full catalog read + mutations
 drop policy if exists "categorias_admin_all" on public.categorias;
 create policy "categorias_admin_all"
   on public.categorias for all
@@ -145,7 +144,24 @@ create policy "product_images_admin_delete"
   to authenticated
   using (bucket_id = 'product-images');
 
--- Realtime so buyer catalog updates when admin mutates photos
+-- ─── SEED CATEGORÍAS (7 oficiales, sin productos) ─────────────────────────────
+
+insert into public.categorias (nombre, slug, orden, activo)
+values
+  ('Gorras', 'gorras', 1, true),
+  ('Camisetas', 'camisetas', 2, true),
+  ('Pantalones', 'pantalones', 3, true),
+  ('Conjuntos', 'conjuntos', 4, true),
+  ('Pantalonetas', 'pantalonetas', 5, true),
+  ('Zapatos', 'zapatos', 6, true),
+  ('Accesorios', 'accesorios', 7, true)
+on conflict (slug) do update set
+  nombre = excluded.nombre,
+  orden = excluded.orden,
+  activo = excluded.activo;
+
+-- ─── REALTIME (cambio admin → se refleja en comprador) ────────────────────────
+
 do $$
 begin
   begin
