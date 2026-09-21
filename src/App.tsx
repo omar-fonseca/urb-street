@@ -11,6 +11,7 @@ import {
   addImageToProduct,
   createProductWithImage,
   removeImage,
+  renameProduct,
 } from "@/services/catalog/adminImageService";
 import type { CatalogCategory, Product } from "@/types/catalog";
 
@@ -50,9 +51,26 @@ export default function App() {
     }
   };
 
+  const handleRename = async (product: Product, nombre: string) => {
+    setBusyMsg("Guardando referencia…");
+    try {
+      await renameProduct(product.id, nombre);
+      await reload();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Error al guardar");
+    } finally {
+      setBusyMsg(null);
+    }
+  };
+
   const handleAddProductImage = async (category: CatalogCategory, file: File) => {
-    const next = category.products.length + 1;
-    const nombre = `${category.nombre} #${String(next).padStart(3, "0")}`;
+    const fallback = `${category.nombre} #${String(category.products.length + 1).padStart(3, "0")}`;
+    const asked = window.prompt(
+      "Referencia corta del producto (máx. 40 caracteres)\nEj: Camisa oversize talla L",
+      fallback
+    );
+    if (asked == null) return;
+    const nombre = asked.trim() || fallback;
     setBusyMsg("Agregando fotografía…");
     try {
       await createProductWithImage(category.id, category.slug, file, nombre);
@@ -109,6 +127,7 @@ export default function App() {
                 isAdmin={adminMode}
                 onAddImage={handleAddImage}
                 onDeleteImage={handleDeleteImage}
+                onRename={handleRename}
                 onAddProductImage={handleAddProductImage}
               />
               {i < data.length - 1 && <GrungeDivider />}

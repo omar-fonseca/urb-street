@@ -9,6 +9,7 @@ interface CategorySectionProps {
   isAdmin?: boolean;
   onAddImage?: (product: Product, file: File) => void;
   onDeleteImage?: (product: Product, imageId: string) => void;
+  onRename?: (product: Product, nombre: string) => void;
   onAddProductImage?: (category: CatalogCategory, file: File) => void;
 }
 
@@ -17,6 +18,7 @@ export function CategorySection({
   isAdmin = false,
   onAddImage,
   onDeleteImage,
+  onRename,
   onAddProductImage,
 }: CategorySectionProps) {
   const products = isAdmin
@@ -68,6 +70,7 @@ export function CategorySection({
                 isAdmin={isAdmin}
                 onAddImage={onAddImage}
                 onDeleteImage={onDeleteImage}
+                onRename={onRename}
               />
             ))}
           </Carousel>

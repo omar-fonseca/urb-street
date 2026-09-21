@@ -8,6 +8,7 @@ interface ProductCardProps {
   isAdmin?: boolean;
   onAddImage?: (product: Product, file: File) => void;
   onDeleteImage?: (product: Product, imageId: string) => void;
+  onRename?: (product: Product, nombre: string) => void;
 }
 
 export function ProductCard({
@@ -15,6 +16,7 @@ export function ProductCard({
   isAdmin = false,
   onAddImage,
   onDeleteImage,
+  onRename,
 }: ProductCardProps) {
   const primary = product.images?.[0];
   const [menuOpen, setMenuOpen] = useState(false);
@@ -77,7 +79,24 @@ export function ProductCard({
               ⋮
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-1 w-44 bg-[#0F0F0F] border border-[#2A2A2A] shadow-xl">
+              <div className="absolute right-0 mt-1 w-48 bg-[#0F0F0F] border border-[#2A2A2A] shadow-xl">
+                {onRename && (
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2.5 font-condensed text-sm uppercase tracking-widest text-[#F5F5F5] hover:bg-[#1A1A1A]"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      const next = window.prompt(
+                        "Referencia corta (máx. 40 caracteres)\nEj: Camisa oversize talla L",
+                        product.nombre
+                      );
+                      if (next == null) return;
+                      onRename(product, next);
+                    }}
+                  >
+                    Editar referencia
+                  </button>
+                )}
                 {hasImage ? (
                   <button
                     type="button"
