@@ -1,6 +1,7 @@
 import { getSupabase } from "@/services/supabase/client";
 import {
   deleteProductImage,
+  getPublicUrl,
   uploadProductImage,
 } from "@/services/storage/storageService";
 import { optimizeImageFile } from "@/lib/imageOptimize";
@@ -41,6 +42,11 @@ export async function addImageToProduct(
     await deleteProductImage(storagePath).catch(() => undefined);
     throw new Error(error.message);
   }
+
+  // Compat con schema actual: productos.url_imagen NOT NULL + check URL
+  if (nextOrden === 1) {
+    await supabase.from("productos").update({ url_imagen: publicUrl }).eq("id", productId);
+  }
 }
 
 export async function createProductWithImage(
@@ -59,14 +65,22 @@ export async function createProductWithImage(
     .limit(1);
 
   const orden = (maxOrden?.[0]?.orden ?? 0) + 1;
+  const productId = crypto.randomUUID();
+  const imageId = crypto.randomUUID();
+  const storagePath = `${categorySlug}/${productId}/${imageId}.webp`;
+  const publicUrl = getPublicUrl(storagePath);
+
+  const optimized = await optimizeImageFile(file);
 
   const { data: product, error: prodErr } = await supabase
     .from("productos")
     .insert({
+      id: productId,
       categoria_id: categoriaId,
       nombre,
       orden,
       visible: true,
+      url_imagen: publicUrl,
     })
     .select("id")
     .single();
@@ -74,8 +88,16 @@ export async function createProductWithImage(
   if (prodErr || !product) throw new Error(prodErr?.message ?? "No se creó el producto");
 
   try {
-    await addImageToProduct(product.id, categorySlug, file);
+    await uploadProductImage(storagePath, optimized.blob, "image/webp");
+    const { error: imgErr } = await supabase.from("producto_imagenes").insert({
+      producto_id: product.id,
+      storage_path: storagePath,
+      public_url: publicUrl,
+      orden: 1,
+    });
+    if (imgErr) throw new Error(imgErr.message);
   } catch (err) {
+    await deleteProductImage(storagePath).catch(() => undefined);
     await supabase.from("productos").delete().eq("id", product.id);
     throw err;
   }
@@ -101,12 +123,18 @@ export async function removeImage(imageId: string): Promise<void> {
 
   if (delErr) throw new Error(delErr.message);
 
-  const { count } = await supabase
+  const { data: remaining } = await supabase
     .from("producto_imagenes")
-    .select("id", { count: "exact", head: true })
-    .eq("producto_id", image.producto_id);
+    .select("id, public_url")
+    .eq("producto_id", image.producto_id)
+    .order("orden", { ascending: true });
 
-  if (count === 0) {
+  if (!remaining?.length) {
     await supabase.from("productos").delete().eq("id", image.producto_id);
+  } else {
+    await supabase
+      .from("productos")
+      .update({ url_imagen: remaining[0].public_url })
+      .eq("id", image.producto_id);
   }
 }
