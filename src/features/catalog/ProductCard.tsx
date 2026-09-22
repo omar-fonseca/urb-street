@@ -87,7 +87,7 @@ export function ProductCard({
                     onClick={() => {
                       setMenuOpen(false);
                       const next = window.prompt(
-                        "Referencia corta (máx. 40 caracteres)\nEj: Camisa oversize talla L",
+                        "Referencia corta (máx. 50 caracteres)\nEj: Camisa oversize talla L",
                         product.nombre
                       );
                       if (next == null) return;

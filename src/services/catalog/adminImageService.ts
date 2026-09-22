@@ -5,6 +5,7 @@ import {
   uploadProductImage,
 } from "@/services/storage/storageService";
 import { optimizeImageFile } from "@/lib/imageOptimize";
+import { normalizeProductRef } from "@/lib/productRef";
 
 export async function addImageToProduct(
   productId: string,
@@ -103,21 +104,19 @@ export async function createProductWithImage(
   }
 }
 
-/** Short product label shown on the card and in WhatsApp (max ~40 chars). */
+/** Short product label shown on the card and in WhatsApp. */
 export async function renameProduct(
   productId: string,
-  nombre: string
+  nombre: string,
+  categorySlug: string
 ): Promise<void> {
-  const cleaned = nombre.trim().replace(/\s+/g, " ");
-  if (!cleaned) throw new Error("La referencia no puede estar vacía.");
-  if (cleaned.length > 40) {
-    throw new Error("Máximo 40 caracteres (ej. Camisa oversize talla L).");
-  }
+  const normalized = normalizeProductRef(nombre, categorySlug);
+  if (!normalized.ok) throw new Error(normalized.error);
 
   const supabase = getSupabase();
   const { error } = await supabase
     .from("productos")
-    .update({ nombre: cleaned })
+    .update({ nombre: normalized.value })
     .eq("id", productId);
 
   if (error) throw new Error(error.message);

@@ -7,7 +7,7 @@ export const WHATSAPP_DISPLAY = "+57 316 141 6538";
  */
 export function waLink(productName?: string): string {
   const msg = productName
-    ? `Hola, me interesa esta prenda: *${productName}*. ¿Está disponible y cuál es el precio?`
+    ? `Hola, quiero información sobre: ${productName}.`
     : "Hola URB Street, quiero hacer un pedido.";
   return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
 }

@@ -10,7 +10,7 @@ interface CarouselProps {
 export function Carousel({
   children,
   autoplay = false,
-  intervalMs = 4500,
+  intervalMs = 4000,
   emptyLabel = "Sin productos visibles",
 }: CarouselProps) {
   const ref = useRef<HTMLDivElement>(null);
