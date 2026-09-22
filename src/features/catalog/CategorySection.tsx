@@ -9,6 +9,7 @@ interface CategorySectionProps {
   isAdmin?: boolean;
   onAddImage?: (product: Product, file: File) => void;
   onDeleteImage?: (product: Product, imageId: string) => void;
+  onRename?: (product: Product, nombre: string) => void;
   onAddProductImage?: (category: CatalogCategory, file: File) => void;
 }
 
@@ -17,6 +18,7 @@ export function CategorySection({
   isAdmin = false,
   onAddImage,
   onDeleteImage,
+  onRename,
   onAddProductImage,
 }: CategorySectionProps) {
   const products = isAdmin
@@ -60,17 +62,33 @@ export function CategorySection({
           )}
         </div>
         <div className="px-6 md:px-8">
-          <Carousel autoplay={!isAdmin && products.length > 1} emptyLabel="Sin fotografías en esta categoría">
-            {products.map((p) => (
-              <ProductCard
-                key={p.id}
-                product={p}
-                isAdmin={isAdmin}
-                onAddImage={onAddImage}
-                onDeleteImage={onDeleteImage}
-              />
-            ))}
-          </Carousel>
+          {products.length === 0 ? (
+            <div className="flex flex-col items-center justify-center gap-3 py-16 border border-dashed border-[#2A2A2A] text-center">
+              <p className="font-condensed font-black text-lg uppercase tracking-widest text-[#888]">
+                Próximamente nuevos productos
+              </p>
+              <p className="font-condensed text-xs uppercase tracking-widest text-[#555]">
+                Estamos preparando esta categoría
+              </p>
+            </div>
+          ) : (
+            <Carousel
+              autoplay={!isAdmin && products.length > 1}
+              intervalMs={4000}
+              emptyLabel="Próximamente nuevos productos"
+            >
+              {products.map((p) => (
+                <ProductCard
+                  key={p.id}
+                  product={p}
+                  isAdmin={isAdmin}
+                  onAddImage={onAddImage}
+                  onDeleteImage={onDeleteImage}
+                  onRename={onRename}
+                />
+              ))}
+            </Carousel>
+          )}
         </div>
         <div className="mt-10 flex justify-center">
           <a

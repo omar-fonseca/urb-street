@@ -5,6 +5,7 @@ import {
   uploadProductImage,
 } from "@/services/storage/storageService";
 import { optimizeImageFile } from "@/lib/imageOptimize";
+import { normalizeProductRef } from "@/lib/productRef";
 
 export async function addImageToProduct(
   productId: string,
@@ -101,6 +102,24 @@ export async function createProductWithImage(
     await supabase.from("productos").delete().eq("id", product.id);
     throw err;
   }
+}
+
+/** Short product label shown on the card and in WhatsApp. */
+export async function renameProduct(
+  productId: string,
+  nombre: string,
+  categorySlug: string
+): Promise<void> {
+  const normalized = normalizeProductRef(nombre, categorySlug);
+  if (!normalized.ok) throw new Error(normalized.error);
+
+  const supabase = getSupabase();
+  const { error } = await supabase
+    .from("productos")
+    .update({ nombre: normalized.value })
+    .eq("id", productId);
+
+  if (error) throw new Error(error.message);
 }
 
 export async function removeImage(imageId: string): Promise<void> {

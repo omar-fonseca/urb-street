@@ -11,7 +11,13 @@ import {
   addImageToProduct,
   createProductWithImage,
   removeImage,
+  renameProduct,
 } from "@/services/catalog/adminImageService";
+import {
+  defaultProductRef,
+  normalizeProductRef,
+  PRODUCT_REF_MAX,
+} from "@/lib/productRef";
 import type { CatalogCategory, Product } from "@/types/catalog";
 
 type View = "catalog" | "login";
@@ -50,12 +56,35 @@ export default function App() {
     }
   };
 
+  const handleRename = async (product: Product, nombre: string) => {
+    const cat = data.find((c) => c.id === product.categoria_id);
+    if (!cat) return;
+    setBusyMsg("Guardando referencia…");
+    try {
+      await renameProduct(product.id, nombre, cat.slug);
+      await reload();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Error al guardar");
+    } finally {
+      setBusyMsg(null);
+    }
+  };
+
   const handleAddProductImage = async (category: CatalogCategory, file: File) => {
-    const next = category.products.length + 1;
-    const nombre = `${category.nombre} #${String(next).padStart(3, "0")}`;
+    const fallback = defaultProductRef(category.slug);
+    const asked = window.prompt(
+      `Referencia corta (máx. ${PRODUCT_REF_MAX} caracteres)\nEj: Camisa oversize talla L\nSi dejas vacío se usará: ${fallback}`,
+      fallback
+    );
+    if (asked == null) return;
+    const normalized = normalizeProductRef(asked, category.slug);
+    if (!normalized.ok) {
+      window.alert(normalized.error);
+      return;
+    }
     setBusyMsg("Agregando fotografía…");
     try {
-      await createProductWithImage(category.id, category.slug, file, nombre);
+      await createProductWithImage(category.id, category.slug, file, normalized.value);
       await reload();
     } catch (err) {
       window.alert(err instanceof Error ? err.message : "Error al agregar");
@@ -109,6 +138,7 @@ export default function App() {
                 isAdmin={adminMode}
                 onAddImage={handleAddImage}
                 onDeleteImage={handleDeleteImage}
+                onRename={handleRename}
                 onAddProductImage={handleAddProductImage}
               />
               {i < data.length - 1 && <GrungeDivider />}
