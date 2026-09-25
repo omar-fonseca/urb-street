@@ -1,10 +1,12 @@
-# Despliegue — Cloudflare Pages
+# Despliegue — Cloudflare
 
 ## Flujo
 
 ```text
-GitHub → Cloudflare Pages → dist/ → Supabase
+GitHub (main) → Cloudflare Pages / Workers → dist/ → Supabase
 ```
+
+Cloudflare debe desplegar desde la rama **`main`**. Los cambios en ramas de feature requieren PR/merge antes de verse en producción.
 
 ## Build settings
 
@@ -14,29 +16,37 @@ GitHub → Cloudflare Pages → dist/ → Supabase
 | Output directory | `dist` |
 | Node | 20+ |
 
-## Variables de entorno (Pages)
+## Variables de entorno (solo públicas)
 
-- `VITE_SUPABASE_URL`
-- `VITE_SUPABASE_PUBLISHABLE_KEY`
+```env
+VITE_SUPABASE_URL=
+VITE_SUPABASE_PUBLISHABLE_KEY=
+```
 
-No añadir service_role.
+### No configurar en Cloudflare
 
-## GitHub
+- `ADMIN_EMAIL`
+- `ADMIN_PASSWORD`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `service_role`
+- Contraseñas de base de datos u otros secretos
 
-1. Crear repo bajo la organización/cuenta **URB Street**
-2. Push de `main`
-3. Conectar el repo en Cloudflare Pages
+El administrador inicia sesión con Supabase Auth; no hay credenciales de admin en el hosting.
 
-## Revertir
+## Checklist post-deploy
 
-- Cloudflare: rollback al deployment anterior
-- Git: `git revert` / redeploy del commit estable
-- Supabase: migraciones nuevas deben ser aditivas; para rollback de datos usar backups del proyecto
-
-## Fotografías
-
-No van en el bundle. Solo URLs de Storage.
+1. Catálogo carga las 8 categorías.
+2. WhatsApp abre con la referencia del producto.
+3. Login admin funciona.
+4. Agregar / reemplazar / eliminar imagen se refleja en el público.
+5. No aparecen secretos en el bundle (revisar Network / variables del proyecto).
 
 ## Dominio
 
-Configurar dominio custom en Cloudflare cuando esté listo. V1 puede usar `*.pages.dev`.
+Opcional. V1.1 puede operar con la URL `*.workers.dev` / `*.pages.dev` hasta configurar dominio personalizado.
+
+## Rollback
+
+- Cloudflare: rollback al deployment anterior.
+- Git: revert del commit y redeploy.
+- Supabase: preferir cambios aditivos; backups del proyecto para datos.

@@ -11,7 +11,7 @@ const DEFAULTS: Required<OptimizeOptions> = {
   maxWidth: 1200,
   maxHeight: 1500,
   quality: 0.82,
-  maxInputBytes: 15 * 1024 * 1024,
+  maxInputBytes: 5 * 1024 * 1024,
 };
 
 const ACCEPTED = new Set([

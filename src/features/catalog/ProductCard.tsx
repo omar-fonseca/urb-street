@@ -7,6 +7,7 @@ interface ProductCardProps {
   product: Product;
   isAdmin?: boolean;
   onAddImage?: (product: Product, file: File) => void;
+  onReplaceImage?: (product: Product, imageId: string, file: File) => void;
   onDeleteImage?: (product: Product, imageId: string) => void;
   onRename?: (product: Product, nombre: string) => void;
 }
@@ -15,13 +16,15 @@ export function ProductCard({
   product,
   isAdmin = false,
   onAddImage,
+  onReplaceImage,
   onDeleteImage,
   onRename,
 }: ProductCardProps) {
   const primary = product.images?.[0];
   const [menuOpen, setMenuOpen] = useState(false);
   const [imgLoaded, setImgLoaded] = useState(false);
-  const fileRef = useRef<HTMLInputElement>(null);
+  const addFileRef = useRef<HTMLInputElement>(null);
+  const replaceFileRef = useRef<HTMLInputElement>(null);
   const menuRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -79,7 +82,7 @@ export function ProductCard({
               ⋮
             </button>
             {menuOpen && (
-              <div className="absolute right-0 mt-1 w-48 bg-[#0F0F0F] border border-[#2A2A2A] shadow-xl">
+              <div className="absolute right-0 mt-1 w-52 bg-[#0F0F0F] border border-[#2A2A2A] shadow-xl">
                 {onRename && (
                   <button
                     type="button"
@@ -95,6 +98,18 @@ export function ProductCard({
                     }}
                   >
                     Editar referencia
+                  </button>
+                )}
+                {hasImage && onReplaceImage && primary && (
+                  <button
+                    type="button"
+                    className="w-full text-left px-3 py-2.5 font-condensed text-sm uppercase tracking-widest text-[#F5F5F5] hover:bg-[#1A1A1A]"
+                    onClick={() => {
+                      setMenuOpen(false);
+                      replaceFileRef.current?.click();
+                    }}
+                  >
+                    Reemplazar imagen
                   </button>
                 )}
                 {hasImage ? (
@@ -118,7 +133,7 @@ export function ProductCard({
                     className="w-full text-left px-3 py-2.5 font-condensed text-sm uppercase tracking-widest text-[#F5F5F5] hover:bg-[#1A1A1A]"
                     onClick={() => {
                       setMenuOpen(false);
-                      fileRef.current?.click();
+                      addFileRef.current?.click();
                     }}
                   >
                     Agregar imagen
@@ -127,7 +142,7 @@ export function ProductCard({
               </div>
             )}
             <input
-              ref={fileRef}
+              ref={addFileRef}
               type="file"
               accept="image/jpeg,image/png,image/webp"
               className="hidden"
@@ -135,6 +150,19 @@ export function ProductCard({
                 const file = e.target.files?.[0];
                 e.target.value = "";
                 if (file && onAddImage) onAddImage(product, file);
+              }}
+            />
+            <input
+              ref={replaceFileRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={(e) => {
+                const file = e.target.files?.[0];
+                e.target.value = "";
+                if (file && primary && onReplaceImage) {
+                  onReplaceImage(product, primary.id, file);
+                }
               }}
             />
           </div>

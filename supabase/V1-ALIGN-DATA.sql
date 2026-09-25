@@ -7,7 +7,7 @@ update public.categorias
 set activo = false
 where slug in ('ropa-hombre', 'ropa-mujer');
 
--- Verificar: solo 7 activas
+-- Verificar: solo categorías oficiales activas
 -- select slug, nombre, orden, activo from public.categorias order by orden;
 
 insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)

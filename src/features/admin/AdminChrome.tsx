@@ -9,6 +9,7 @@ interface AdminLoginProps {
 export function AdminLogin({ onLogin, onCancel }: AdminLoginProps) {
   const [email, setEmail] = useState("");
   const [pass, setPass] = useState("");
+  const [showPass, setShowPass] = useState(false);
   const [err, setErr] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -59,17 +60,39 @@ export function AdminLogin({ onLogin, onCancel }: AdminLoginProps) {
               <label className="font-condensed text-xs uppercase tracking-widest text-[#888] block mb-1">
                 Contraseña
               </label>
-              <input
-                type="password"
-                value={pass}
-                onChange={(e) => {
-                  setPass(e.target.value);
-                  setErr(null);
-                }}
-                className="w-full bg-[#141414] border border-[#2A2A2A] text-[#F5F5F5] font-condensed text-sm px-3 py-2.5 focus:outline-none focus:border-[#E8151B] transition-colors"
-                autoComplete="current-password"
-                required
-              />
+              <div className="relative">
+                <input
+                  type={showPass ? "text" : "password"}
+                  value={pass}
+                  onChange={(e) => {
+                    setPass(e.target.value);
+                    setErr(null);
+                  }}
+                  className="w-full bg-[#141414] border border-[#2A2A2A] text-[#F5F5F5] font-condensed text-sm px-3 py-2.5 pr-11 focus:outline-none focus:border-[#E8151B] transition-colors"
+                  autoComplete="current-password"
+                  required
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPass((v) => !v)}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 p-1.5 text-[#555] hover:text-[#F5F5F5] transition-colors"
+                  aria-label={showPass ? "Ocultar contraseña" : "Mostrar contraseña"}
+                  tabIndex={-1}
+                >
+                  {showPass ? (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                      <path d="M3 3l18 18" />
+                      <path d="M10.6 10.6a2 2 0 102.8 2.8" />
+                      <path d="M9.9 5.1A10.5 10.5 0 0121 12c-.4.8-1 1.6-1.7 2.3M6.1 6.1C4.2 7.5 2.7 9.5 2 12c1.7 4.1 5.6 7 10 7 1.6 0 3.1-.3 4.5-1" />
+                    </svg>
+                  ) : (
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" aria-hidden>
+                      <path d="M2 12s3.5-7 10-7 10 7 10 7-3.5 7-10 7S2 12 2 12z" />
+                      <circle cx="12" cy="12" r="3" />
+                    </svg>
+                  )}
+                </button>
+              </div>
             </div>
             {err && (
               <p className="font-condensed text-[#E8151B] text-xs uppercase tracking-widest">{err}</p>

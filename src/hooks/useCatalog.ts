@@ -26,7 +26,7 @@ export function useCatalog(adminMode: boolean) {
       setStatus("empty");
       return;
     }
-    // Mostrar las 7 categorías aunque aún no haya fotos (admin puede agregar)
+    // Mostrar las 8 categorías aunque aún no haya fotos (admin puede agregar)
     setStatus("success");
     if (!soft) hasLoadedOnce.current = true;
   }, []);

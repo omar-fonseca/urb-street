@@ -7,6 +7,28 @@ import {
 import { optimizeImageFile } from "@/lib/imageOptimize";
 import { normalizeProductRef } from "@/lib/productRef";
 
+/** Operational cap per category (V1.1). Replace does not consume a new slot. */
+export const MAX_IMAGES_PER_CATEGORY = 100;
+
+const LIMIT_MSG = "Límite alcanzado: máximo 100 imágenes por categoría.";
+
+async function countProductsInCategory(categoriaId: string): Promise<number> {
+  const supabase = getSupabase();
+  const { count, error } = await supabase
+    .from("productos")
+    .select("id", { count: "exact", head: true })
+    .eq("categoria_id", categoriaId);
+  if (error) throw new Error(error.message);
+  return count ?? 0;
+}
+
+export async function assertCategoryHasSlot(categoriaId: string): Promise<void> {
+  const n = await countProductsInCategory(categoriaId);
+  if (n >= MAX_IMAGES_PER_CATEGORY) {
+    throw new Error(LIMIT_MSG);
+  }
+}
+
 export async function addImageToProduct(
   productId: string,
   categorySlug: string,
@@ -56,6 +78,8 @@ export async function createProductWithImage(
   file: File,
   nombre: string
 ): Promise<void> {
+  await assertCategoryHasSlot(categoriaId);
+
   const supabase = getSupabase();
 
   const { data: maxOrden } = await supabase
@@ -101,6 +125,57 @@ export async function createProductWithImage(
     await deleteProductImage(storagePath).catch(() => undefined);
     await supabase.from("productos").delete().eq("id", product.id);
     throw err;
+  }
+}
+
+/**
+ * Replace the file of an existing image row in place.
+ * Keeps producto_id, image row id, and orden (carousel position unchanged).
+ */
+export async function replaceProductImage(
+  imageId: string,
+  categorySlug: string,
+  file: File
+): Promise<void> {
+  const supabase = getSupabase();
+
+  const { data: image, error: fetchErr } = await supabase
+    .from("producto_imagenes")
+    .select("id, storage_path, producto_id, orden, public_url")
+    .eq("id", imageId)
+    .single();
+
+  if (fetchErr || !image) {
+    throw new Error(fetchErr?.message ?? "Imagen no encontrada");
+  }
+
+  const optimized = await optimizeImageFile(file);
+  const newFileId = crypto.randomUUID();
+  const newPath = `${categorySlug}/${image.producto_id}/${newFileId}.webp`;
+  const oldPath = image.storage_path;
+
+  const publicUrl = await uploadProductImage(newPath, optimized.blob, "image/webp");
+
+  const { error: updErr } = await supabase
+    .from("producto_imagenes")
+    .update({
+      storage_path: newPath,
+      public_url: publicUrl,
+    })
+    .eq("id", imageId);
+
+  if (updErr) {
+    await deleteProductImage(newPath).catch(() => undefined);
+    throw new Error(updErr.message);
+  }
+
+  await supabase
+    .from("productos")
+    .update({ url_imagen: publicUrl })
+    .eq("id", image.producto_id);
+
+  if (oldPath && oldPath !== newPath) {
+    await deleteProductImage(oldPath).catch(() => undefined);
   }
 }
 

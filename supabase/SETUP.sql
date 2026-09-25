@@ -144,7 +144,7 @@ create policy "product_images_admin_delete"
   to authenticated
   using (bucket_id = 'product-images');
 
--- ─── SEED CATEGORÍAS (7 oficiales, sin productos) ─────────────────────────────
+-- ─── SEED CATEGORÍAS (8 oficiales, sin productos) ─────────────────────────────
 
 insert into public.categorias (nombre, slug, orden, activo)
 values
@@ -153,8 +153,9 @@ values
   ('Pantalones', 'pantalones', 3, true),
   ('Conjuntos', 'conjuntos', 4, true),
   ('Pantalonetas', 'pantalonetas', 5, true),
-  ('Zapatos', 'zapatos', 6, true),
-  ('Accesorios', 'accesorios', 7, true)
+  ('Bermudas', 'bermudas', 6, true),
+  ('Zapatos', 'zapatos', 7, true),
+  ('Accesorios', 'accesorios', 8, true)
 on conflict (slug) do update set
   nombre = excluded.nombre,
   orden = excluded.orden,

@@ -7,6 +7,7 @@ const FALLBACK_BY_SLUG: Record<string, string> = {
   pantalones: "Pantalón",
   conjuntos: "Conjunto",
   pantalonetas: "Pantaloneta",
+  bermudas: "Bermuda",
   zapatos: "Zapato",
   accesorios: "Accesorio",
 };

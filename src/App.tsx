@@ -12,6 +12,7 @@ import {
   createProductWithImage,
   removeImage,
   renameProduct,
+  replaceProductImage,
 } from "@/services/catalog/adminImageService";
 import {
   defaultProductRef,
@@ -51,6 +52,20 @@ export default function App() {
       await reload();
     } catch (err) {
       window.alert(err instanceof Error ? err.message : "Error al eliminar");
+    } finally {
+      setBusyMsg(null);
+    }
+  };
+
+  const handleReplaceImage = async (product: Product, imageId: string, file: File) => {
+    const cat = data.find((c) => c.id === product.categoria_id);
+    if (!cat) return;
+    setBusyMsg("Reemplazando imagen…");
+    try {
+      await replaceProductImage(imageId, cat.slug, file);
+      await reload();
+    } catch (err) {
+      window.alert(err instanceof Error ? err.message : "Error al reemplazar");
     } finally {
       setBusyMsg(null);
     }
@@ -137,6 +152,7 @@ export default function App() {
                 category={cat}
                 isAdmin={adminMode}
                 onAddImage={handleAddImage}
+                onReplaceImage={handleReplaceImage}
                 onDeleteImage={handleDeleteImage}
                 onRename={handleRename}
                 onAddProductImage={handleAddProductImage}
