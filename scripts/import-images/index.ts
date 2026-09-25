@@ -39,6 +39,7 @@ const FOLDER_TO_SLUG: Record<string, string> = {
   pantalones: "pantalones",
   conjuntos: "conjuntos",
   pantalonetas: "pantalonetas",
+  bermudas: "bermudas",
   zapatos: "zapatos",
   accesorios: "accesorios",
 };

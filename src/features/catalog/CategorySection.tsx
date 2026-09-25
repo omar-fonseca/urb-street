@@ -2,12 +2,14 @@ import { WAIcon } from "@/components/Brand";
 import { Carousel } from "@/features/catalog/Carousel";
 import { ProductCard } from "@/features/catalog/ProductCard";
 import { waCategoryLink } from "@/features/whatsapp/waLink";
+import { MAX_IMAGES_PER_CATEGORY } from "@/services/catalog/adminImageService";
 import type { CatalogCategory, Product } from "@/types/catalog";
 
 interface CategorySectionProps {
   category: CatalogCategory;
   isAdmin?: boolean;
   onAddImage?: (product: Product, file: File) => void;
+  onReplaceImage?: (product: Product, imageId: string, file: File) => void;
   onDeleteImage?: (product: Product, imageId: string) => void;
   onRename?: (product: Product, nombre: string) => void;
   onAddProductImage?: (category: CatalogCategory, file: File) => void;
@@ -17,6 +19,7 @@ export function CategorySection({
   category,
   isAdmin = false,
   onAddImage,
+  onReplaceImage,
   onDeleteImage,
   onRename,
   onAddProductImage,
@@ -25,6 +28,7 @@ export function CategorySection({
     ? category.products
     : category.products.filter((p) => p.visible && (p.images?.length ?? 0) > 0);
 
+  const atLimit = products.length >= MAX_IMAGES_PER_CATEGORY;
   const fileRefId = `add-${category.slug}`;
 
   return (
@@ -38,6 +42,7 @@ export function CategorySection({
           <div className="flex-1 h-px bg-[#2A2A2A] ml-2" />
           <span className="font-condensed text-xs text-[#555] uppercase tracking-widest">
             {products.length} {products.length === 1 ? "estilo" : "estilos"}
+            {isAdmin ? ` / ${MAX_IMAGES_PER_CATEGORY}` : ""}
           </span>
           {isAdmin && onAddProductImage && (
             <>
@@ -46,18 +51,31 @@ export function CategorySection({
                 type="file"
                 accept="image/jpeg,image/png,image/webp"
                 className="hidden"
+                disabled={atLimit}
                 onChange={(e) => {
                   const file = e.target.files?.[0];
                   e.target.value = "";
                   if (file) onAddProductImage(category, file);
                 }}
               />
-              <label
-                htmlFor={fileRefId}
-                className="cursor-pointer font-condensed text-xs uppercase tracking-widest border border-[#E8151B] text-[#E8151B] px-3 py-1.5 hover:bg-[#E8151B] hover:text-white transition-colors"
-              >
-                + Imagen
-              </label>
+              {atLimit ? (
+                <button
+                  type="button"
+                  className="font-condensed text-xs uppercase tracking-widest border border-[#444] text-[#666] px-3 py-1.5 cursor-not-allowed"
+                  onClick={() =>
+                    window.alert("Límite alcanzado: máximo 100 imágenes por categoría.")
+                  }
+                >
+                  + Imagen
+                </button>
+              ) : (
+                <label
+                  htmlFor={fileRefId}
+                  className="cursor-pointer font-condensed text-xs uppercase tracking-widest border border-[#E8151B] text-[#E8151B] px-3 py-1.5 hover:bg-[#E8151B] hover:text-white transition-colors"
+                >
+                  + Imagen
+                </label>
+              )}
             </>
           )}
         </div>
@@ -74,7 +92,7 @@ export function CategorySection({
           ) : (
             <Carousel
               autoplay={!isAdmin && products.length > 1}
-              intervalMs={4000}
+              intervalMs={5000}
               emptyLabel="Próximamente nuevos productos"
             >
               {products.map((p) => (
@@ -83,6 +101,7 @@ export function CategorySection({
                   product={p}
                   isAdmin={isAdmin}
                   onAddImage={onAddImage}
+                  onReplaceImage={onReplaceImage}
                   onDeleteImage={onDeleteImage}
                   onRename={onRename}
                 />

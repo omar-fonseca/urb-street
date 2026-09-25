@@ -1,4 +1,7 @@
--- Seed: eight official categories. No products.
+-- URB Street V1.1 — agregar categoría Bermudas (idempotente)
+-- Ejecutar UNA vez en Supabase SQL Editor.
+-- No elimina datos. Solo inserta/actualiza orden de categorías oficiales.
+
 insert into public.categorias (nombre, slug, orden, activo)
 values
   ('Gorras', 'gorras', 1, true),
@@ -13,3 +16,6 @@ on conflict (slug) do update set
   nombre = excluded.nombre,
   orden = excluded.orden,
   activo = excluded.activo;
+
+-- Verificar: 8 activas en orden
+-- select slug, nombre, orden, activo from public.categorias where activo order by orden;

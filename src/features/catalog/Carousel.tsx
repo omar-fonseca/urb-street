@@ -7,13 +7,25 @@ interface CarouselProps {
   emptyLabel?: string;
 }
 
+/** Pause autoplay after manual nav so it does not double-advance. */
+const MANUAL_PAUSE_MS = 8000;
+
+function cardStep(el: HTMLDivElement): number {
+  const child = el.firstElementChild as HTMLElement | null;
+  if (!child) return 304;
+  const gapRaw = getComputedStyle(el).gap || getComputedStyle(el).columnGap || "16";
+  const gap = Number.parseFloat(gapRaw) || 16;
+  return child.offsetWidth + gap;
+}
+
 export function Carousel({
   children,
   autoplay = false,
-  intervalMs = 4000,
+  intervalMs = 5000,
   emptyLabel = "Sin productos visibles",
 }: CarouselProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const pauseUntilRef = useRef(0);
   const [hasItems, setHasItems] = useState(true);
 
   useEffect(() => {
@@ -28,10 +40,11 @@ export function Carousel({
     if (!el) return;
 
     const id = window.setInterval(() => {
-      const step = 288 + 16;
+      if (Date.now() < pauseUntilRef.current) return;
+      const step = cardStep(el);
       const max = el.scrollWidth - el.clientWidth;
       if (max <= 0) return;
-      const next = el.scrollLeft + step * 2;
+      const next = el.scrollLeft + step;
       el.scrollTo({
         left: next >= max - 8 ? 0 : next,
         behavior: "smooth",
@@ -41,11 +54,19 @@ export function Carousel({
     return () => window.clearInterval(id);
   }, [autoplay, intervalMs, children]);
 
+  const pauseAutoplay = () => {
+    pauseUntilRef.current = Date.now() + MANUAL_PAUSE_MS;
+  };
+
   const scroll = (dir: "left" | "right") => {
     const el = ref.current;
     if (!el) return;
-    const step = 288 + 16;
-    el.scrollBy({ left: dir === "right" ? step * 2 : -(step * 2), behavior: "smooth" });
+    pauseAutoplay();
+    const step = cardStep(el);
+    el.scrollBy({
+      left: dir === "right" ? step : -step,
+      behavior: "smooth",
+    });
   };
 
   if (!hasItems) {
@@ -62,6 +83,9 @@ export function Carousel({
         ref={ref}
         className="flex gap-4 overflow-x-auto pb-2"
         style={{ scrollSnapType: "x mandatory", scrollbarWidth: "none" }}
+        onPointerDown={pauseAutoplay}
+        onTouchStart={pauseAutoplay}
+        onWheel={pauseAutoplay}
       >
         {children}
       </div>

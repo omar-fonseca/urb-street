@@ -1,12 +1,13 @@
-/** Official V1 categories — fixed order */
+/** Official V1.1 categories — fixed order */
 export const OFFICIAL_CATEGORIES = [
   { slug: "gorras", nombre: "Gorras", orden: 1 },
   { slug: "camisetas", nombre: "Camisetas", orden: 2 },
   { slug: "pantalones", nombre: "Pantalones", orden: 3 },
   { slug: "conjuntos", nombre: "Conjuntos", orden: 4 },
   { slug: "pantalonetas", nombre: "Pantalonetas", orden: 5 },
-  { slug: "zapatos", nombre: "Zapatos", orden: 6 },
-  { slug: "accesorios", nombre: "Accesorios", orden: 7 },
+  { slug: "bermudas", nombre: "Bermudas", orden: 6 },
+  { slug: "zapatos", nombre: "Zapatos", orden: 7 },
+  { slug: "accesorios", nombre: "Accesorios", orden: 8 },
 ] as const;
 
 export type CategorySlug = (typeof OFFICIAL_CATEGORIES)[number]["slug"];
