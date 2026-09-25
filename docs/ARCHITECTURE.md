@@ -1,10 +1,9 @@
-# Arquitectura — URB Street V1
+# Arquitectura — URB Street V1.1
 
 ## Producto
 
-```text
-CATÁLOGO + WHATSAPP + ADMIN DE FOTOGRAFÍAS
-```
+Catálogo web + WhatsApp + administrador simple de imágenes.  
+No incluye carrito, pagos ni checkout.
 
 ## Diagrama
 
@@ -14,42 +13,59 @@ CATÁLOGO + WHATSAPP + ADMIN DE FOTOGRAFÍAS
               +----------+----------+
               |                     |
            PÚBLICO                ADMIN
-              |                     |
-          CATÁLOGO              AUTH
-              |                     |
-              |               MODO ADMIN
+         (catálogo)          (Auth + controles)
               |                     |
               +----------+----------+
                          |
                       SUPABASE
               +----------+----------+
               |          |          |
-             AUTH        DB       STORAGE
+             AUTH      POSTGRES   STORAGE
+                                   product-images
+                         |
+                      WhatsApp
+                   (canal comercial)
 ```
 
-## Capas frontend
+## Capas del frontend
 
 | Ruta | Responsabilidad |
 |------|-----------------|
-| `src/features/catalog` | UI catálogo, carrusel, cards |
-| `src/features/admin` | Login UI, barra modo admin |
-| `src/features/auth` | Hook sesión Supabase |
-| `src/features/whatsapp` | `waLink()` centralizado |
-| `src/services/catalog` | Lectura catálogo + mutaciones imagen |
-| `src/services/storage` | Upload/delete Storage |
+| `src/features/catalog` | Catálogo, carrusel, cards, empty states |
+| `src/features/admin` | Login y barra de modo administrador |
+| `src/features/auth` | Sesión Supabase |
+| `src/features/whatsapp` | Enlaces `wa.me` centralizados |
+| `src/services/catalog` | Lectura del catálogo y mutaciones de imagen |
+| `src/services/storage` | Upload / delete en Storage |
 | `src/services/supabase` | Cliente único |
-| `src/hooks` | Estado async catálogo |
+| `src/lib` | Referencias cortas, optimización WebP |
+| `src/hooks` | Estado async del catálogo (+ Realtime) |
 | `src/types` | Tipos de dominio |
-| `scripts/import-images` | Importación masiva local → Storage/DB |
+
+`src/legacy/` conserva el prototipo Figma Make como referencia histórica; no es la app en producción.
 
 ## Datos
 
-- `categorias` — 7 fijas (seed)
-- `productos` — metadatos; nombres neutros tipo `Gorras #001` en import
-- `producto_imagenes` — `storage_path` + `public_url`
+| Tabla | Rol |
+|-------|-----|
+| `categorias` | 8 oficiales (orden fijo) |
+| `productos` | Metadatos y referencia corta (`nombre`) |
+| `producto_imagenes` | `storage_path`, `public_url`, `orden` |
 
-Binarios solo en Storage bucket `product-images`.
+Binarios solo en el bucket **`product-images`**.
+
+### Categorías (orden)
+
+1. Gorras · 2. Camisetas · 3. Pantalones · 4. Conjuntos · 5. Pantalonetas · 6. Bermudas · 7. Zapatos · 8. Accesorios
+
+Scripts SQL de mantenimiento: `supabase/SETUP.sql`, `supabase/REPAIR.sql`, `supabase/V1.1-ADD-BERMUDAS.sql`, `supabase/seed/categories.sql`.
+
+## Flujos clave
+
+**Comprador:** ve categorías → fotos con referencia → WhatsApp.
+
+**Administrador:** login → agregar (final) / reemplazar (misma posición) / editar referencia / eliminar (Storage + DB).
 
 ## Extensibilidad
 
-Nuevas funciones (pagos, inventario, etc.) se agregan como features/servicios nuevos sin rehacer el catálogo. V1 no las implementa.
+Nuevas capacidades (pagos, roles, analytics) se agregan como features nuevas sin rehacer el catálogo. V1.1 no las implementa.

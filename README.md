@@ -2,129 +2,103 @@
 
 Catálogo web profesional de moda urbana. **No es un ecommerce.**
 
-URB Street muestra productos con fotografías curadas, referencias cortas y contacto directo por WhatsApp. El administrador actualiza el catálogo visual sin contratar desarrollo para cada cambio de foto.
+URB Street permite a un negocio de streetwear mostrar un catálogo curado en la web, recibir consultas por WhatsApp y mantener las fotografías al día desde un panel simple — sin carrito, sin pagos y sin depender de un desarrollador para cada cambio de imagen.
 
-## Qué problema resuelve
+## Problema que resuelve
 
-| Actor | Necesidad |
-|-------|-----------|
-| Negocio | Publicar un catálogo curado, rápido y con identidad streetwear |
-| Comprador | Ver productos y consultar por WhatsApp |
-| Administrador | Agregar, reemplazar, etiquetar y eliminar fotos sin tocar código |
+| Actor | Qué obtiene |
+|-------|-------------|
+| Negocio | Catálogo público con identidad visual propia |
+| Comprador | Explora productos y pregunta por WhatsApp con la referencia exacta |
+| Administrador | Agrega, reemplaza, etiqueta y elimina fotos sin tocar código |
 
-**Fuera de alcance:** carrito, pagos, checkout, cuentas de compradores, inventario avanzado, importación masiva, analytics y dominio personalizado.
+**Fuera de alcance V1.1:** carrito, pagos, checkout, cuentas de compradores, inventario avanzado, importación masiva, analytics y dominio personalizado.
 
 ## Stack
 
-- React, TypeScript, Vite, Tailwind CSS
-- Supabase Auth, PostgreSQL, Storage (`product-images`)
-- Cloudflare Workers/Pages
-- GitHub
+| Capa | Tecnología |
+|------|------------|
+| Frontend | React, TypeScript, Vite, Tailwind CSS |
+| Backend | Supabase Auth, PostgreSQL, Storage |
+| Hosting | Cloudflare Workers / Pages |
+| Código | GitHub |
 
 ## Arquitectura
 
 ```text
-Comprador ──► Catálogo React ──► Supabase (lectura)
-Admin     ──► Mismo catálogo + Auth ──► Supabase (escritura)
-                                       Storage: product-images
-WhatsApp  ◄── enlace centralizado (wa.me)
+Comprador ──► Catálogo React ──► Supabase (lectura pública)
+Admin     ──► Misma UI + Auth ──► Supabase (escritura autenticada)
+                                  Storage: product-images
+WhatsApp  ◄── wa.me (canal comercial)
 ```
 
-## Categorías (V1.1)
+- Frontend público sin cuenta.
+- Modo administrador sobre la misma interfaz (controles adicionales).
+- Supabase como backend (Auth + DB + Storage).
+- WhatsApp como canal de venta e información.
 
-1. Gorras  
-2. Camisetas  
-3. Pantalones  
-4. Conjuntos  
-5. Pantalonetas  
-6. Bermudas  
-7. Zapatos  
-8. Accesorios  
+Documentación técnica: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
-Categorías vacías muestran: **Próximamente nuevos productos**.
+## Funcionalidades V1.1
 
-Para añadir Bermudas en una base ya desplegada, ejecutar una vez:
+- **8 categorías:** Gorras, Camisetas, Pantalones, Conjuntos, Pantalonetas, Bermudas, Zapatos, Accesorios.
+- Referencia corta bajo cada foto (máx. 50 caracteres) y en el mensaje de WhatsApp.
+- Carrusel público con autoplay ~5 s y flechas de un paso; en admin, sin autoplay.
+- Administrador: agregar imagen (al final), reemplazar (misma posición), editar referencia, eliminar (Storage + DB).
+- Límite operativo: **100 imágenes por categoría** (reemplazar no consume cupo).
+- Categorías vacías: *Próximamente nuevos productos*.
 
-`supabase/V1.1-ADD-BERMUDAS.sql`
+## Seguridad
 
-## Flujo comprador
+- Sin contraseñas hardcodeadas en el frontend de producción.
+- Sin `service_role` en el cliente ni en Cloudflare.
+- `.env` ignorado por Git.
+- Acceso admin solo con **Supabase Auth** + RLS / Storage policies.
 
-1. Entra al catálogo.
-2. Navega por categorías (carrusel con autoplay ~5 s; flechas avanzan de a 1).
-3. Ve la referencia corta bajo cada foto.
-4. Pulsa **Preguntar** → WhatsApp con esa referencia.
-
-## Flujo administrador
-
-1. Menú `⋮` → Administrador → login (Supabase Auth).
-2. Banner **MODO ADMINISTRADOR** (sin autoplay en carruseles).
-3. **+ Imagen** en una categoría → archivo → referencia corta (máx. 50 caracteres; fallback por categoría si vacío). La nueva foto se agrega **al final**.
-4. Menú `⋮` en cada card:
-   - **Editar referencia**
-   - **Reemplazar imagen** → misma posición; borra el archivo viejo en Storage
-   - **Eliminar imagen** → Storage + DB; libera cupo
-5. Al eliminar: archivo en Storage, fila en `producto_imagenes` y producto si ya no tiene imágenes.
-
-### Agregar vs reemplazar
-
-| Acción | Posición | Cupo (máx. 100) | Storage |
-|--------|----------|-----------------|---------|
-| Agregar | Al final de la categoría | Consume 1 | Sube archivo nuevo |
-| Reemplazar | Misma posición (`orden` / producto) | No consume | Sube nuevo + borra viejo |
-| Eliminar | Se quita del carrusel | Libera 1 | Borra archivo |
+Ver [`docs/SECURITY.md`](docs/SECURITY.md).
 
 ## Límites operativos
 
-- **Máximo 100 imágenes por categoría** (tope visual operativo ~800 con 8 categorías).
-- Si se alcanza el límite: *“Límite alcanzado: máximo 100 imágenes por categoría.”*
-- Reemplazar sigue permitido con 100.
-- Solo fotos seleccionadas manualmente; **no import masivo** ni las 966 fotos del archivo.
-- Peso ideal final ~150–350 KB; máximo de subida **5 MB**; WebP recomendado (JPG/PNG aceptados y convertidos).
-- Bucket oficial: `product-images` (no `catalogo`).
+- Solo imágenes seleccionadas manualmente (calidad y curación).
+- No importación masiva en la UI; no subir carpetas completas sin revisión.
+- Evitar duplicados.
+- Peso ideal ~150–350 KB; máximo de subida 5 MB; WebP recomendado.
+- Bucket oficial: **`product-images`** (no `catalogo`).
+- Si el volumen crece, puede requerirse plan de pago o cambios de arquitectura.
 
-## Rendimiento
+## Despliegue (Cloudflare)
 
-- Lazy loading en imágenes del catálogo.
-- Carrusel: un paso por flecha; autoplay pausa tras interacción manual.
-- No precarga masiva ni descarga de todo el catálogo en el primer render.
-
-## Despliegue
-
-1. Repo GitHub → Cloudflare Pages/Workers.
-2. Build: `npm run build` → output `dist`
-3. Variables (solo públicas):
+1. Conectar el repo GitHub → Cloudflare Pages / Workers.
+2. Build: `npm run build` · Output: `dist`
+3. Variables **solo públicas:**
 
 ```env
 VITE_SUPABASE_URL=
 VITE_SUPABASE_PUBLISHABLE_KEY=
 ```
 
-**No configurar:** `service_role`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` ni secretos.
+**No configurar:** `ADMIN_EMAIL`, `ADMIN_PASSWORD`, `SUPABASE_SERVICE_ROLE_KEY`, `service_role` ni contraseñas de base de datos.
+
+Guía: [`docs/DEPLOYMENT.md`](docs/DEPLOYMENT.md).
 
 ## Desarrollo local
 
 ```bash
 npm install
-# completar .env (ver .env.example)
+# Copiar .env.example → .env y completar claves públicas
 npm run dev
 npm run build
 ```
 
-## Seguridad
-
-- Sin contraseñas hardcodeadas en producción.
-- Sin `service_role` en el cliente.
-- `.env` fuera de Git.
-- Admin con Supabase Auth + RLS / Storage policies.
+Setup y operación del admin: [`docs/SETUP.md`](docs/SETUP.md), [`docs/ADMIN-AND-IMAGES.md`](docs/ADMIN-AND-IMAGES.md).
 
 ## Escalabilidad futura
 
 - Dominio personalizado
-- CDN / optimización avanzada de imágenes
-- Roles administrativos
+- Roles administrativos adicionales
 - Analytics
-- Ecommerce **solo si el cliente lo pide**
-- Plan de pago o nueva arquitectura si el volumen supera el Free tier
+- Optimización / CDN de imágenes más avanzada
+- Ecommerce **solo si el cliente lo solicita**
 
 ## Licencia
 
