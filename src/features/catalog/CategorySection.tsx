@@ -92,7 +92,7 @@ export function CategorySection({
           ) : (
             <Carousel
               autoplay={!isAdmin && products.length > 1}
-              intervalMs={5000}
+              intervalMs={3000}
               emptyLabel="Próximamente nuevos productos"
             >
               {products.map((p) => (
