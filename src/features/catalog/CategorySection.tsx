@@ -34,13 +34,13 @@ export function CategorySection({
   return (
     <section id={category.slug} className="py-16 md:py-24">
       <div className="max-w-7xl mx-auto px-4 md:px-12">
-        <div className="flex items-center gap-4 mb-10">
-          <div className="w-1.5 h-10 bg-[#E8151B]" />
-          <h2 className="font-condensed font-black text-4xl md:text-5xl uppercase tracking-widest text-[#F5F5F5]">
+        <div className="flex items-center gap-2 sm:gap-4 mb-10 min-w-0">
+          <div className="w-1.5 h-10 shrink-0 bg-[#E8151B]" />
+          <h2 className="min-w-0 font-condensed font-black text-3xl sm:text-4xl md:text-5xl uppercase tracking-wider sm:tracking-widest text-[#F5F5F5]">
             {category.nombre}
           </h2>
-          <div className="flex-1 h-px bg-[#2A2A2A] ml-2" />
-          <span className="font-condensed text-xs text-[#555] uppercase tracking-widest">
+          <div className="flex-1 min-w-0 h-px bg-[#2A2A2A] ml-2" />
+          <span className="shrink-0 whitespace-nowrap font-condensed text-xs text-[#555] uppercase tracking-widest">
             {products.length} {products.length === 1 ? "estilo" : "estilos"}
             {isAdmin ? ` / ${MAX_IMAGES_PER_CATEGORY}` : ""}
           </span>

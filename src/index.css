@@ -101,3 +101,206 @@ body {
   backdrop-filter: blur(16px);
   background-color: rgba(10, 10, 10, 0.95);
 }
+
+/* ─── Hero 2.5D composition (shared % coords; PNG lettering; soft smoke) ─── */
+
+/*
+  Smoke anchored to .hero-compose.
+  Stack: smoke z-0 → lettering z-10 → model z-20.
+
+  Edge cause (layer isolation): p1, p2 and p3 EACH show L/R hard walls when
+  unmasked — dense PNG content fills the plume box; background-size crops away
+  the texture’s soft margin; dual CSS masks added artificial vertical seams.
+  p3 also reads as a red plate.
+
+  Fix: soft-alpha PNG copy + 2 layers only + one soft container mask;
+  no per-plume masks; modest zoom so PNG edge fade stays in frame.
+*/
+.hero-smoke {
+  position: absolute;
+  /* extra room on the RIGHT so clip edge sits past the fade */
+  inset: -34% -72% -18% -30%;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+  /*
+    Right-barrier fix: keep left fully open (#000 through ~55%),
+    long linear fade only on the right (intersect radial).
+    Both p1+p2 showed the wall — shared container edge, not one plume.
+  */
+  -webkit-mask-image:
+    radial-gradient(
+      ellipse 88% 84% at 48% 56%,
+      #000 0%,
+      #000 24%,
+      rgba(0, 0, 0, 0.55) 48%,
+      rgba(0, 0, 0, 0.22) 66%,
+      rgba(0, 0, 0, 0.06) 80%,
+      transparent 92%
+    ),
+    linear-gradient(
+      to right,
+      #000 0%,
+      #000 55%,
+      rgba(0, 0, 0, 0.55) 70%,
+      rgba(0, 0, 0, 0.2) 82%,
+      rgba(0, 0, 0, 0.05) 90%,
+      transparent 97%
+    );
+  mask-image:
+    radial-gradient(
+      ellipse 88% 84% at 48% 56%,
+      #000 0%,
+      #000 24%,
+      rgba(0, 0, 0, 0.55) 48%,
+      rgba(0, 0, 0, 0.22) 66%,
+      rgba(0, 0, 0, 0.06) 80%,
+      transparent 92%
+    ),
+    linear-gradient(
+      to right,
+      #000 0%,
+      #000 55%,
+      rgba(0, 0, 0, 0.55) 70%,
+      rgba(0, 0, 0, 0.2) 82%,
+      rgba(0, 0, 0, 0.05) 90%,
+      transparent 97%
+    );
+  -webkit-mask-composite: source-in;
+  mask-composite: intersect;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 100% 100%;
+  mask-size: 100% 100%;
+}
+
+.hero-smoke-plume {
+  position: absolute;
+  will-change: transform;
+  background-repeat: no-repeat;
+  background-image: url("/hero/smoke-texture-soft.png");
+  background-size: cover;
+  background-position: center;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+/* Wide field — 100% size maps soft PNG alpha to the box edges */
+.hero-smoke-p1 {
+  left: -8%;
+  top: -8%;
+  width: 120%;
+  height: 120%;
+  /* bias texture left so soft right margin of PNG stays in the fade zone */
+  background-position: 46% 50%;
+  background-size: 100% 100%;
+  opacity: 0.28;
+  animation: hero-smoke-rise-a 34s ease-in-out infinite;
+}
+
+/* Concentrated bloom from EVERYDAY */
+.hero-smoke-p2 {
+  left: 2%;
+  top: 30%;
+  width: 110%;
+  height: 82%;
+  background-position: 52% 60%;
+  background-size: 100% 100%;
+  opacity: 0.3;
+  animation: hero-smoke-rise-b 30s ease-in-out infinite;
+}
+
+
+@keyframes hero-smoke-rise-a {
+  0% { transform: translate3d(-1%, 1.5%, 0); }
+  50% { transform: translate3d(1.2%, -2%, 0); }
+  100% { transform: translate3d(-1%, 1.5%, 0); }
+}
+
+@keyframes hero-smoke-rise-b {
+  0% { transform: translate3d(1%, 2%, 0); }
+  50% { transform: translate3d(-1.2%, -2.5%, 0); }
+  100% { transform: translate3d(1%, 2%, 0); }
+}
+
+@media (min-width: 640px) {
+  .hero-smoke {
+    inset: -38% -78% -20% -34%;
+  }
+
+  .hero-smoke-p1 { opacity: 0.26; }
+  .hero-smoke-p2 { opacity: 0.28; }
+}
+
+@media (min-width: 1024px) {
+  .hero-smoke {
+    inset: -42% -85% -22% -38%;
+  }
+
+  .hero-smoke-p1 { opacity: 0.24; }
+  .hero-smoke-p2 { opacity: 0.26; }
+}
+
+.hero-compose {
+  line-height: 0;
+  /* compact shoes → subtitle (~10–12px with flex gap-3); not glued */
+  margin-bottom: 0;
+  isolation: isolate;
+}
+
+.hero-word {
+  position: absolute;
+  display: block;
+  height: auto;
+  max-width: none;
+  pointer-events: none;
+  user-select: none;
+  filter: drop-shadow(2px 3px 0 rgba(0, 0, 0, 0.55)) drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
+}
+
+/* % tops retuned to former visual offsets relative to model box height */
+.hero-word-real {
+  left: 22%;
+  top: 25%;
+  width: 58%;
+}
+
+.hero-word-style {
+  left: 26%;
+  top: 46%;
+  width: 55%;
+}
+
+.hero-word-everyday {
+  left: 20%;
+  top: 64%;
+  width: 62%;
+  filter:
+    drop-shadow(2px 3px 0 rgba(60, 0, 0, 0.7))
+    drop-shadow(0 0 16px rgba(255, 26, 34, 0.25))
+    drop-shadow(0 10px 18px rgba(0, 0, 0, 0.35));
+}
+
+/* In-flow model defines compose height; left offset preserved */
+.hero-model {
+  position: relative;
+  left: -2%;
+  top: 0;
+  width: 54%;
+  max-width: none;
+  height: auto;
+  z-index: 20;
+  display: block;
+  filter: drop-shadow(0 14px 24px rgba(0, 0, 0, 0.55));
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-stage .animate-bounce {
+    animation: none;
+  }
+
+  .hero-smoke-p1,
+  .hero-smoke-p2 {
+    animation: none;
+  }
+}
